@@ -16,13 +16,48 @@ class ViewController: UIViewController {
     /// va montrer une donnée qu'on a sauvegardé dans l'app :
     @IBOutlet weak var dataLbl: UILabel!
     
+    @IBOutlet weak var timeLbl: UILabel!
+    
+    @IBOutlet weak var actionSheetBtn: UIButton!
+    
     /// pour accéder à userDefaults, il nous faut l'accès à la classe :
     let userDefaults = UserDefaults.standard
     
+    var timer = Timer()
+    var timeRemaining = 5
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        dataLbl.text = getData()
+        dataLbl.text = getData() 
         
+    }
+    // MARK: - timer
+    
+    func setupTimer() {
+        actionSheetBtn.isEnabled = false
+        /// 1 action toutes les 1 s
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (time) in
+            self.timeRemaining -= 1
+            self.timeLbl.text = String(self.timeRemaining)
+            /// pour ne pas avoir de chiffre négatif
+            if self.timeRemaining <= 0 {
+                self.stopTimer()
+            }
+        })
+    }
+    
+    func stopTimer() {
+        /// on arrête le timer
+        timer.invalidate()
+    }
+    
+    @IBAction func startBtn(_ sender: Any) {
+        actionSheetBtn.isEnabled = true
+        setupTimer()
+    }
+    
+    @IBAction func stopBtn(_ sender: Any) {
+        stopTimer()
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -33,7 +68,7 @@ class ViewController: UIViewController {
     // MARK: - userDefaults
     
     // il faudra une KEY & une VALUE
-    func saveData(string: String) {
+    func saveData(string: String?) {
         /// value: Any, forKey: String. forKey sera notre clef pour récupérer plus tard notre valeur
         userDefaults.set(string, forKey: "Text")
     }
@@ -42,8 +77,6 @@ class ViewController: UIViewController {
         /// si on n'arrive pas à récupérer la clef on affiche "Aucune données"
         userDefaults.string(forKey: "Text") ?? "Aucune données"
     }
-    
-    // MARK: - userDefaults Action
     
     @IBAction func saveButtonPressed(_ sender: Any) {
         if let text = textField.text, text != "" {
@@ -56,22 +89,33 @@ class ViewController: UIViewController {
 
     @IBAction func alertButton(_ sender: Any) {
         
-        let controller = UIAlertController(title: "Ma première alerte", message: "Félicitations, vous avez montré votre première alerte", preferredStyle: .alert)
-        /// bouton pour fermer la pop-up. handler => que va t-il se passer quand on appuie sur le bouton :
-        let close = UIAlertAction(title: "Close", style: .cancel, handler: nil)
-        /// ajoute ce bouton au controller :
-        controller.addAction(close)
+        let controller = UIAlertController(title: "User Defaults", message: "Vous avez sauvegardé la String : \(getData())", preferredStyle: .alert)
         
-        /// pour montrer plusieurs boutons dans la pop-up avec handler:
-        let destructive = UIAlertAction(title: "Color red", style: .destructive) { (action) in
-            self.alertBtn.tintColor = .red
+        let reset = UIAlertAction(title: "Remise à zéro", style: .destructive) { (action) in
+            self.saveData(string: nil)
+            self.dataLbl.text = self.getData()
         }
-        controller.addAction(destructive)
         
-        let defaultAction = UIAlertAction(title: "Color green", style: .default) { (action) in
-            self.alertBtn.tintColor = .green
-        }
-        controller.addAction(defaultAction)
+        let cancel = UIAlertAction(title: "OK", style: .cancel, handler: nil)
+        
+        controller.addAction(reset)
+        controller.addAction(cancel)
+        
+//        /// bouton pour fermer la pop-up. handler => que va t-il se passer quand on appuie sur le bouton :
+//        let close = UIAlertAction(title: "Close", style: .cancel, handler: nil)
+//        /// ajoute ce bouton au controller :
+//        controller.addAction(close)
+//
+//        /// pour montrer plusieurs boutons dans la pop-up avec handler:
+//        let destructive = UIAlertAction(title: "Color red", style: .destructive) { (action) in
+//            self.alertBtn.tintColor = .red
+//        }
+//        controller.addAction(destructive)
+//
+//        let defaultAction = UIAlertAction(title: "Color green", style: .default) { (action) in
+//            self.alertBtn.tintColor = .green
+//        }
+//        controller.addAction(defaultAction)
         
         /// montrer le controller :
         present(controller, animated: true, completion: nil)
@@ -81,21 +125,35 @@ class ViewController: UIViewController {
     @IBAction func actionSheetButton(_ sender: UIButton) {
         
         let controller = UIAlertController(title: "Action Sheet", message: "Ma première action sheet", preferredStyle: .actionSheet)
-        let blue = UIAlertAction(title: "Blue", style: .default) { (action) in
-            self.view.backgroundColor = .systemBlue
+        
+        let five = UIAlertAction(title: "5 secondes", style: .default) { (action) in
+            self.timeRemaining = 5
+            self.timeLbl.text = String(self.timeRemaining)
         }
         
-        let yellow = UIAlertAction(title: "Yellow", style: .default) { (action) in
-            self.view.backgroundColor = .systemYellow
+        let ten = UIAlertAction(title: "10 secondes", style: .default) { (action) in
+            self.timeRemaining = 10
+            self.timeLbl.text = String(self.timeRemaining)
         }
-        let purple = UIAlertAction(title: "Purple", style: .default) { (action) in
-            self.view.backgroundColor = .systemPurple
-        }
+        
+//        let blue = UIAlertAction(title: "Blue", style: .default) { (action) in
+//            self.view.backgroundColor = .systemBlue
+//        }
+//
+//        let yellow = UIAlertAction(title: "Yellow", style: .default) { (action) in
+//            self.view.backgroundColor = .systemYellow
+//        }
+//        let purple = UIAlertAction(title: "Purple", style: .default) { (action) in
+//            self.view.backgroundColor = .systemPurple
+//        }
         let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         
-        controller.addAction(blue)
-        controller.addAction(yellow)
-        controller.addAction(purple)
+//        controller.addAction(blue)
+//        controller.addAction(yellow)
+//        controller.addAction(purple)
+
+        controller.addAction(five)
+        controller.addAction(ten)
         controller.addAction(cancel)
         
         // vérification pour l'iPad :
